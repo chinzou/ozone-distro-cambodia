@@ -1,12 +1,12 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
-  
+
   <groupId>com.ozonehis</groupId>
   <artifactId>ozone-distro-cambodia</artifactId>
   <name>Ozone Distribution for Cambodia</name>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  
+
   <organization>
     <name>Ozone HIS</name>
     <url>http://www.ozone-his.com</url>
@@ -17,13 +17,13 @@
       <url>http://www.mekomsolutions.com</url>
     </developer>
   </developers>
-  
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <buildDirectory>${project.build.directory}</buildDirectory>
-    <assemblyClassifier/>
+    <assemblyClassifier>assembly-id</assemblyClassifier>
   </properties>
-  
+
   <dependencies>
     <dependency>
       <groupId>com.ozonehis</groupId>
@@ -32,7 +32,7 @@
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
-  
+
   <profiles>
     <profile>
       <!-- Introducing confidentiality dependencies for production environments -->
@@ -95,8 +95,35 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>validator</id>
+      <build>
+        <plugins>
+          <!-- hooking the OpenMRS config validation to the integration-test phase -->
+          <plugin>
+            <groupId>org.openmrs.maven.plugins</groupId>
+            <artifactId>openmrs-packager-maven-plugin</artifactId>
+            <version>1.7.0</version>
+            <executions>
+              <execution>
+                <id>validate-configurations</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>validate-configurations</goal>
+                </goals>
+                <configuration>
+                  <sourceDir>
+                    ${buildDirectory}/${project.artifactId}-${project.version}/configuration</sourceDir>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
   </profiles>
-  
+
   <build>
     <plugins>
       <!-- Copy the Ozone Pro Distro resources -->
@@ -199,9 +226,32 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>copy-merged-config</id>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <target>
+                <copy
+                  todir="${buildDirectory}/${project.artifactId}-${project.version}/configuration">
+                  <fileset dir="${buildDirectory}/${project.artifactId}-${project.version}/openmrs_config" />
+                </copy>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
-  
+
   <repositories>
     <repository>
       <id>mks-nexus-public</id>
@@ -212,7 +262,7 @@
       <url>https://nexus.mekomsolutions.net/repository/maven-private/</url>
     </repository>
   </repositories>
-  
+
   <distributionManagement>
     <repository>
       <name>Mekom Solutions Nexus repo</name>
@@ -225,5 +275,36 @@
       <url>https://nexus.mekomsolutions.net/repository/maven-private-snapshots</url>
     </snapshotRepository>
   </distributionManagement>
-  
+  <pluginRepositories>
+    <pluginRepository>
+      <id>openmrs-repo</id>
+      <name>OpenMRS Nexus Repository</name>
+      <url>https://mavenrepo.openmrs.org/nexus/content/repositories/public</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>openmrs-snapshots</id>
+      <name>OpenMRS Public Repository</name>
+      <url>https://mavenrepo.openmrs.org/snapshots</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </pluginRepository>
+    <pluginRepository>
+      <id>mks-nexus-public</id>
+      <url>https://nexus.mekomsolutions.net/repository/maven-public/</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>mks-nexus-snapshots</id>
+      <url>https://nexus.mekomsolutions.net/repository/maven-snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
 </project>
